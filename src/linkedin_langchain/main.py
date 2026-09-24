@@ -2,8 +2,10 @@ from langchain.chat_models import init_chat_model
 from dotenv import load_dotenv
 from langchain.messages import HumanMessage
 from langchain.tools import tool
+from langchain.agents import create_agent
 
 load_dotenv()
+
 
 
 @tool
@@ -22,19 +24,18 @@ def calculate_bmi(weight: float, height: float) -> float:
 
 
 model = init_chat_model(model="gpt-4.1-mini",temperature=0.7)
-model_with_tools = model.bind_tools([calculate_bmi])
+agent = create_agent(
+    model=model,
+    tools=[calculate_bmi],
+    system_prompt="Você é um assistente útil de bem estar e conselhos de saúde. Use a tool de calculo de imc quando necessários")
 
 # historico - chat
 messages = [
     HumanMessage(content="imc de uma pessoa com 70 quilos e 175 de altura")
 ]
 
-response = model_with_tools.invoke(messages)
-messages.append(response)
+response = agent.invoke(
+    {"messages": messages}
+)
 
-for tool_call in response.tool_calls:
-    result = calculate_bmi.invoke(tool_call)
-    messages.append(result)
-
-final = model_with_tools.invoke(messages)
-print(final)
+print(response["messages"][-1].content)

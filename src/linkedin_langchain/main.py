@@ -14,6 +14,5 @@ messages = [
     HumanMessage(content="Como ser mais produtivo?")
 ]
 
-response = model.invoke(messages)
-
-print(response)
+for chunk in model.stream(messages):
+    print(chunk.content, end="", flush=True)
